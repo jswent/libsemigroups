@@ -1,5 +1,5 @@
 name: Downstream
-on: [pull_request, workflow_dispatch]
+on: [push, pull_request, workflow_dispatch]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,7 +19,7 @@ jobs:
       URL: https://github.com/libsemigroups/libsemigroups_pybind11.git
       LD_LIBRARY_PATH: /usr/local/lib/
     name: libsemigroups_pybind11 / main branch
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout libsemigroups
         uses: actions/checkout@v7
@@ -67,7 +67,7 @@ jobs:
       GAP_DIR: "/home/runner/gap"
       CONFIGFLAGS: "--disable-hpcombi"
     name: GAP 4.15.1 / Semigroups / stable-5.6 / ubuntu / 64-bit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - name: "Install GAP"

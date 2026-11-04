@@ -1,5 +1,5 @@
 name: Compilers
-on: [pull_request, workflow_dispatch]
+on: [push, pull_request, workflow_dispatch]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -9,7 +9,7 @@ jobs:
   tests:
     name: ${{ matrix.sys.compiler }}-${{ matrix.sys.version }}
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +75,7 @@ jobs:
       fail-fast: false
       matrix:
         sys:
-          - { package: gxx, compiler: g++, os: ubuntu-latest }
+          - { package: gxx, compiler: g++, os: ubuntu-26.04 }
           - { package: clangxx, compiler: clang++, os: macOS-latest }
     steps:
       - uses: actions/checkout@v7

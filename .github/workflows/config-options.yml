@@ -1,5 +1,5 @@
 name: Config options
-on: pull_request
+on: [push, pull_request]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -9,7 +9,7 @@ jobs:
   basic-options:
     timeout-minutes: 45
     name: ${{ matrix.debug }} ${{ matrix.eigen }} ${{ matrix.hpcombi }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -52,7 +52,7 @@ jobs:
   external-deps:
     timeout-minutes: 45
     name: ${{ matrix.external-backward }} ${{ matrix.external-fmt }} ${{ matrix.external-eigen }} ${{ matrix.external-magic-enum }} ${{ matrix.external-catch }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -111,7 +111,7 @@ jobs:
   bitset:
     timeout-minutes: 45
     name: ${{ matrix.popcnt }} ${{ matrix.clzll }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:

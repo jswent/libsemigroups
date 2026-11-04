@@ -1,5 +1,5 @@
 name: Sanitisers
-on: pull_request
+on: [push, pull_request]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -7,7 +7,7 @@ concurrency:
 jobs:
   sanitisers:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       CXX: ccache clang++
       CXXFLAGS: -fdiagnostics-color -fno-omit-frame-pointer -g -O1
@@ -47,7 +47,7 @@ jobs:
           fi
   valgrind:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       CXX: ccache g++
       CXXFLAGS: -fdiagnostics-color

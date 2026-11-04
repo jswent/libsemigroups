@@ -1,5 +1,5 @@
 name: clang-format
-on: pull_request
+on: [push, pull_request]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
@@ -7,7 +7,7 @@ concurrency:
 jobs:
   formatting-check:
     name: ${{ matrix.path }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:

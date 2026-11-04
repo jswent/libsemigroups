@@ -1,5 +1,5 @@
 name: OS
-on: [pull_request, workflow_dispatch]
+on: [push, pull_request, workflow_dispatch]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,7 +11,7 @@ jobs:
     defaults:
       run:
         shell: alpine.sh {0}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - name: Preserve the environment for Alpine setup . . .
@@ -109,7 +109,7 @@ jobs:
   ubuntu-32:
     name: Ubuntu-32
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       GH_ACTIONS_ABI: 32
       GH_ACTIONS_ARCH: x86
@@ -160,7 +160,7 @@ jobs:
   FreeBSD:
     name: FreeBSD
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - name: Test in FreeBSD
@@ -180,7 +180,7 @@ jobs:
   OpenBSD:
     name: OpenBSD
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       AUTOCONF_VERSION: 2.72
       AUTOMAKE_VERSION: 1.17
