@@ -29,10 +29,10 @@ jobs:
             cxx: ccache g++
             library: -march=x86-64-v3
             tests: -march=x86-64
-          - name: AddressSanitizer tests, default library
+          - name: AddressSanitizer tests, baseline library
             os: ubuntu-latest
             cxx: ccache g++
-            library: ""
+            library: -march=x86-64
             tests: -fsanitize=address -fno-omit-frame-pointer
           - name: macOS, forced allocator in tests, default library
             os: macos-latest
