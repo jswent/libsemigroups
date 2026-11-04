@@ -18,10 +18,19 @@
 // TODO(later):
 // 1. add more tests
 
+#include <cstddef>  // for size_t
+#include <cstdint>  // for int64_t
+#include <string>   // for string
+#include <vector>   // for vector
+
 #include "libsemigroups/exception.hpp"
 #include "test-main.hpp"
 
+#include "libsemigroups/cong.hpp"           // for Congruence
+#include "libsemigroups/detail/eigen.hpp"   // for eigen
 #include "libsemigroups/detail/report.hpp"  // for ReportGuard
+#include "libsemigroups/kambites.hpp"       // for Kambites
+#include "libsemigroups/knuth-bendix.hpp"   // for KnuthBendix
 #include "libsemigroups/obvinf.hpp"         // for IsObviouslyInfinite
 #include "libsemigroups/presentation.hpp"   // for Presentation
 #include "libsemigroups/todd-coxeter.hpp"   // for ToddCoxeter
@@ -321,5 +330,84 @@ namespace libsemigroups {
     REQUIRE(tc.current_word_graph().number_of_nodes_active() == 1);
 
     REQUIRE(is_obviously_infinite(tc));
+  }
+
+  // The remaining tests in this file can only fail when this file is compiled
+  // with different flags from the library, so that Eigen's allocation functions
+  // differ between them. The workflow .github/workflows/eigen-allocation.yml
+  // does this; a build that uses the same flags everywhere will always pass.
+
+  LIBSEMIGROUPS_TEST_CASE("ObviouslyInfinite",
+                          "022",
+                          "matrix resized in the library and the header",
+                          "[quick][obvinf]") {
+    std::vector<word_type>   w = {000_w, 0_w, 111_w, 1_w, 01_w, 10_w};
+    std::vector<std::string> s = {"aaa", "a", "bbb", "b", "ab", "ba"};
+
+    IsObviouslyInfinite ioi(2);
+    ioi.add_rules_no_checks(01_w, w.cbegin(), w.cend());  // in the library
+    ioi.add_rules_no_checks("ab", s.cbegin(), s.cend());  // in the header
+    ioi.add_rules_no_checks(01_w, w.cbegin(), w.cend());
+    REQUIRE(!ioi.result());
+
+    ioi.init(2);  // the library frees what the header allocated
+    ioi.add_rules_no_checks("ab", s.cbegin(), s.cend());
+    REQUIRE(!ioi.result());
+  }
+
+#ifdef LIBSEMIGROUPS_EIGEN_ENABLED
+  LIBSEMIGROUPS_TEST_CASE("ObviouslyInfinite",
+                          "023",
+                          "library uses the Eigen functions in this binary",
+                          "[quick][obvinf]") {
+    // The library exports its instantiations of Eigen's templates, and so the
+    // dynamic linker binds the library's calls to any copies with the same name
+    // in this binary. These ordinary uses of Eigen make such copies, which must
+    // not be what IsObviouslyInfinite ends up using. The values of n are large
+    // enough for the decomposition in result to use vector instructions.
+    Eigen::Matrix<int64_t, Eigen::Dynamic, Eigen::Dynamic> m(1, 3);
+    m.conservativeResize(4, Eigen::NoChange);
+    m.setZero();
+    REQUIRE(m.sum() == 0);
+
+    Eigen::MatrixXf id = Eigen::MatrixXf::Identity(8, 8);
+    REQUIRE(id.colPivHouseholderQr().rank() == 8);
+
+    for (size_t n = 8; n <= 32; n *= 2) {
+      word_type              alphabet;
+      std::vector<word_type> rules;
+      for (size_t i = 0; i < n; ++i) {
+        alphabet.push_back(i);
+        rules.push_back({i, i, i});
+        rules.push_back({i});
+        rules.push_back({i, (i + 1) % n});
+        rules.push_back({(i + 1) % n, i});
+      }
+      IsObviouslyInfinite ioi(n);
+      ioi.add_rules_no_checks(alphabet, rules.cbegin(), rules.cend());
+      REQUIRE(!ioi.result());
+    }
+  }
+#endif
+
+  LIBSEMIGROUPS_TEST_CASE("ObviouslyInfinite",
+                          "024",
+                          "from KnuthBendix, Kambites, and Congruence",
+                          "[quick][obvinf]") {
+    auto                      rg = ReportGuard(false);
+    Presentation<std::string> p;
+    p.alphabet("ab");
+    presentation::add_rule(p, "aaa", "a");
+    presentation::add_rule(p, "bbb", "b");
+    presentation::add_rule(p, "ab", "ba");
+
+    KnuthBendix<std::string> kb(congruence_kind::twosided, p);
+    REQUIRE(kb.number_of_classes() == 8);
+
+    Kambites<std::string> k(congruence_kind::twosided, p);
+    REQUIRE(!is_obviously_infinite(k));
+
+    Congruence<std::string> c(congruence_kind::twosided, p);
+    REQUIRE(c.number_of_classes() == 8);
   }
 }  // namespace libsemigroups
