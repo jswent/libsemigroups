@@ -1,0 +1,78 @@
+name: Eigen allocation
+on: [pull_request, workflow_dispatch]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Users of the library can compile its headers with different flags from those
+# used to build it, and those flags decide how Eigen allocates and frees memory.
+# So Eigen storage that is allocated on one side of the library boundary must be
+# safe to free on the other. These jobs compile the tests with different flags
+# from the library to check this; a build using the same flags everywhere can't.
+jobs:
+  mixed-flags:
+    name: ${{ matrix.name }}
+    timeout-minutes: 45
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: AVX2 tests, baseline library
+            os: ubuntu-latest
+            cxx: ccache g++
+            library: -march=x86-64
+            tests: -march=x86-64-v3
+          - name: baseline tests, AVX2 library
+            os: ubuntu-latest
+            cxx: ccache g++
+            library: -march=x86-64-v3
+            tests: -march=x86-64
+          - name: AddressSanitizer tests, default library
+            os: ubuntu-latest
+            cxx: ccache g++
+            library: ""
+            tests: -fsanitize=address -fno-omit-frame-pointer
+          - name: macOS, forced allocator in tests, default library
+            os: macos-latest
+            cxx: ccache clang++
+            library: ""
+            tests: -DEIGEN_MALLOC_ALREADY_ALIGNED=0
+    env:
+      CXX: ${{ matrix.cxx }}
+      ASAN_OPTIONS: detect_leaks=0
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup ccache . . .
+        uses: Chocobo1/setup-ccache-action@v1
+        with:
+          update_packager_index: false
+          install_ccache: true
+          override_cache_key: eigen-allocation-${{ matrix.os }}
+      - name: Install dependencies . . .
+        if: runner.os == 'macOS'
+        run: brew install autoconf automake libtool
+      - name: Check that the flags select different allocators . . .
+        run: |
+          allocator() {
+            printf '#include <Eigen/Core>\nEIGEN_MALLOC_ALREADY_ALIGNED\n' |
+              $CXX -std=c++17 -E -x c++ -I"$(echo third_party/eigen-*)" "$@" - |
+              tail -1
+          }
+          library=$(allocator ${{ matrix.library }})
+          tests=$(allocator ${{ matrix.tests }})
+          echo "EIGEN_MALLOC_ALREADY_ALIGNED: library=$library tests=$tests"
+          test "$library" != "$tests"
+      - name: Configure . . .
+        run: |
+          mkdir -p m4
+          ./autogen.sh
+          ./configure CXX="$CXX" CXXFLAGS="-O2 ${{ matrix.library }}" \
+            --enable-eigen --disable-hpcombi --disable-backward
+      - name: Build libsemigroups . . .
+        run: make -j4
+      - name: Build test_obvinf with different flags . . .
+        run: make test_obvinf -j4 CXXFLAGS="-O2 ${{ matrix.tests }}"
+      - name: Run the quick tests . . .
+        run: ./test_obvinf "[quick]"
