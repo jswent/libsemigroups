@@ -6,6 +6,7 @@ on:
       - v3
       - main
       - stable-*.*
+      - "ci-probe/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
