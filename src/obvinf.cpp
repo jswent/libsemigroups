@@ -40,11 +40,12 @@ namespace libsemigroups {
 
 #ifdef LIBSEMIGROUPS_EIGEN_ENABLED
   namespace {
-    // The library exports the instantiations of Eigen's templates that it uses,
-    // and so its calls can be bound at load time to copies in the user's binary
-    // that were compiled with different flags. DontAlign makes the type below
-    // distinct from Eigen::MatrixXf, so that using a decomposition of that type
-    // elsewhere can't replace the functions used here.
+    // On Linux, for example, the library exports the instantiations of Eigen's
+    // templates that it uses, and so its calls can be bound at load time to
+    // copies in the user's binary that were compiled with different flags.
+    // DontAlign makes the type below distinct from Eigen::MatrixXf, so that
+    // using a decomposition of that type elsewhere can't replace the functions
+    // used here.
     template <typename Matrix>
     Eigen::Index rank(Matrix const& matrix) {
       using float_matrix_type

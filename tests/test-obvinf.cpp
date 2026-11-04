@@ -48,6 +48,7 @@ namespace libsemigroups {
   }  // namespace
 
   using namespace literals;
+  using std::literals::operator""s;
 
   LIBSEMIGROUPS_TEST_CASE("ObviouslyInfinite",
                           "000",
@@ -360,11 +361,12 @@ namespace libsemigroups {
                           "023",
                           "library uses the Eigen functions in this binary",
                           "[quick][obvinf]") {
-    // The library exports its instantiations of Eigen's templates, and so the
-    // dynamic linker binds the library's calls to any copies with the same name
-    // in this binary. These ordinary uses of Eigen make such copies, which must
-    // not be what IsObviouslyInfinite ends up using. The values of n are large
-    // enough for the decomposition in result to use vector instructions.
+    // On Linux, for example, the library exports its instantiations of Eigen's
+    // templates, and so the dynamic linker binds the library's calls to any
+    // copies with the same name in this binary. These ordinary uses of Eigen
+    // make such copies, which must not be what IsObviouslyInfinite ends up
+    // using. The values of n are large enough for the decomposition in result
+    // to use vector instructions.
     Eigen::Matrix<int64_t, Eigen::Dynamic, Eigen::Dynamic> m(1, 3);
     m.conservativeResize(4, Eigen::NoChange);
     m.setZero();
@@ -396,10 +398,10 @@ namespace libsemigroups {
                           "[quick][obvinf]") {
     auto                      rg = ReportGuard(false);
     Presentation<std::string> p;
-    p.alphabet("ab");
-    presentation::add_rule(p, "aaa", "a");
-    presentation::add_rule(p, "bbb", "b");
-    presentation::add_rule(p, "ab", "ba");
+    p.alphabet("ab"s);
+    presentation::add_rule(p, "aaa"s, "a"s);
+    presentation::add_rule(p, "bbb"s, "b"s);
+    presentation::add_rule(p, "ab"s, "ba"s);
 
     KnuthBendix<std::string> kb(congruence_kind::twosided, p);
     REQUIRE(kb.number_of_classes() == 8);
