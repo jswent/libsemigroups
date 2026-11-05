@@ -33,7 +33,7 @@ jobs:
             os: ubuntu-latest
             cxx: ccache g++
             library: -march=x86-64
-            tests: -fsanitize=address -fno-omit-frame-pointer
+            tests: -fsanitize=address -fno-omit-frame-pointer -Wno-maybe-uninitialized
           - name: macOS, forced allocator in tests, default library
             os: macos-latest
             cxx: ccache clang++
