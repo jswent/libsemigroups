@@ -6,6 +6,7 @@ on:
       - v3
       - main
       - stable-*.*
+      - "ci-probe/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,7 +16,7 @@ jobs:
   basic-tests:
     name: ${{ matrix.compiler }}
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       CXX: ccache ${{ matrix.compiler }}
       CXXFLAGS: -fdiagnostics-color -O2 -g
@@ -54,9 +55,8 @@ jobs:
           verbose: true
   benchmarks:
     name: Benchmarks compile
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' }}
+    timeout-minutes: 60
+    runs-on: ubuntu-26.04
     env:
       CXX: ccache g++
       CXXFLAGS: -fdiagnostics-color
@@ -79,8 +79,7 @@ jobs:
           make bench_all -j4
   distcheck:
     timeout-minutes: 30
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-26.04
     env:
       CXX: ccache g++
       CXXFLAGS: -fdiagnostics-color
@@ -99,9 +98,8 @@ jobs:
       - name: make distcheck . . .
         run: make distcheck -j4
   doc:
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' }}
+    timeout-minutes: 60
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7

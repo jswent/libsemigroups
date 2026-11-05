@@ -1,5 +1,5 @@
 name: Eigen allocation
-on: [pull_request, workflow_dispatch]
+on: [push, pull_request, workflow_dispatch]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -20,17 +20,17 @@ jobs:
       matrix:
         include:
           - name: AVX2 tests, baseline library
-            os: ubuntu-latest
+            os: ubuntu-26.04
             cxx: ccache g++
             library: -march=x86-64
             tests: -march=x86-64-v3
           - name: baseline tests, AVX2 library
-            os: ubuntu-latest
+            os: ubuntu-26.04
             cxx: ccache g++
             library: -march=x86-64-v3
             tests: -march=x86-64
           - name: AddressSanitizer tests, baseline library
-            os: ubuntu-latest
+            os: ubuntu-26.04
             cxx: ccache g++
             library: -march=x86-64
             tests: -fsanitize=address -fno-omit-frame-pointer -Wno-maybe-uninitialized
